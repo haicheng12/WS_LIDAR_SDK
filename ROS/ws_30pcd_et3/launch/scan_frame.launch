@@ -1,0 +1,10 @@
+<!-- -->
+<launch>
+
+    <node pkg="ws_30pcd_et3" type="scan_frame" respawn="true" name="scan_frame" output="screen"> <!--雷达节点-->
+      <param name="ip_address" type="string" value="192.168.137.200" /> <!--服务器IP地址-->
+    </node> 
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ws_30pcd_et3)/rviz/points_imu.rviz"/>
+
+</launch>

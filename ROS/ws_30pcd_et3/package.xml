@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ws_30pcd_et3</name>
+  <version>0.1.0</version>
+  <description>ws_30pcd_et3.</description>
+
+  <maintainer email="y@roswiki.com">Ken Yang</maintainer>
+
+  <author email="y@roswiki.com">Ken Yang</author>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>tf</depend>
+  <depend>pcl_ros</depend>
+  <depend>message_generation</depend>
+  <depend>visualization_msgs</depend>
+  <exec_depend>message_runtime</exec_depend>
+
+</package>
