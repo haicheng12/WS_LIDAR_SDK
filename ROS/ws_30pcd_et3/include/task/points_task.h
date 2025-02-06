@@ -62,6 +62,9 @@ namespace wr_scan
 		struct sockaddr_in server_addr_points_;
 		socklen_t addr_size_points_;
 
+		char frame_id_str_[256];   // 加载的参数
+		char scan_topic_str_[256]; // 加载的参数
+
 		Udp *points_udp_task_;
 
 	protected:

@@ -53,13 +53,14 @@ namespace wr_scan
             if (recvData->data_type[0] == 0x1A && recvData->data_type[1] == 0xA1) // 帧头
             {
                 // 时间戳计算
-                uint64_t timestamp_data = recvData->timestamp; // 单位：毫秒
-                // std::cout << "timestamp_data = " << timestamp_data << std::endl;
+                uint64_t timestamp_data = recvData->timestamp; // 单位：纳秒
 
                 obj->imu_time_sec_ = timestamp_data / 1000; // 单位：秒
                 // std::cout << " imu time_sec_ = " << time_sec_;
                 obj->imu_time_nsec_ = (timestamp_data % 1000) * 1000 * 1000; // 单位：纳秒
-                // std::cout << " time_nsec_ = " << time_nsec_ << std::endl;
+                                                                             // std::cout << " time_nsec_ = " << time_nsec_ << std::endl;
+
+                // std::cout << "imu timestamp_data = " << timestamp_data << std::endl;
 
                 float acc_x = -recvData->acc_x; // 根据imu安装位置做一个偏转
                 float acc_y = -recvData->acc_z;
@@ -73,7 +74,6 @@ namespace wr_scan
                 sensor_msgs::Imu imu_data; // 创建一个 imu 消息
 
                 imu_data.header.frame_id = "ws_imu";
-                // imu_data.header.stamp = ros::Time::now();
                 imu_data.header.stamp.sec = obj->imu_time_sec_;   // 秒
                 imu_data.header.stamp.nsec = obj->imu_time_nsec_; // 纳秒
 

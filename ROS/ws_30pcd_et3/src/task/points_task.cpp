@@ -4,6 +4,16 @@ namespace wr_scan
 {
     PointsTask::PointsTask() // 构造函数
     {
+        std::string frame_id;
+        ros::param::get("~frame_id", frame_id);
+        printf("frame_id = %s\n", frame_id.c_str());
+        strcpy(frame_id_str_, frame_id.c_str());
+
+        std::string scan_topic;
+        ros::param::get("~scan_topic", scan_topic);
+        printf("scan_topic = %s\n", scan_topic.c_str());
+        strcpy(scan_topic_str_, scan_topic.c_str());
+
         initial();
     }
 
@@ -57,13 +67,12 @@ namespace wr_scan
         while (ros::ok())
         {
             pthread_mutex_lock(&obj->points_listen_mutex_); // 锁定互斥锁
-            // 接收服务器回应
-            recvfrom(obj->sock_points_, (char *)recvData, sizeof(PCLData), 0, (struct sockaddr *)&obj->server_addr_points_, &obj->addr_size_points_);
+
+            recvfrom(obj->sock_points_, (char *)recvData, sizeof(PCLData), 0, (struct sockaddr *)&obj->server_addr_points_, &obj->addr_size_points_); // 接收服务器回应
 
             if (recvData->data_type[0] == 0x5A && recvData->data_type[1] == 0xA5) // 帧头
             {
-                count++; // 接收540次为一帧完整的数据
-                // std::cout << "count " << count << std::endl;//1-540
+                count++; // 接收450次为一帧完整的数据
 
                 if (recvData->lable == 0x00) // 开始
                 {
@@ -78,33 +87,24 @@ namespace wr_scan
                 }
 
                 // 雷达传过来的当前时间
-                uint64_t timestamp_data = recvData->timestamp; // 单位：毫秒
-                // std::cout << "point timestamp_data = " << timestamp_data << std::endl;
+                uint64_t timestamp_data = recvData->timestamp; // 单位：微秒
 
-                obj->points_time_sec_ = timestamp_data / 1000; // 单位：秒
-                // std::cout << " point points_time_sec_ = " << points_time_sec_;
-                obj->points_time_nsec_ = (timestamp_data % 1000) * 1000 * 1000; // 单位：纳秒
-                // std::cout << " points_time_nsec_ = " << points_time_nsec_ << std::endl;
+                obj->points_time_sec_ = timestamp_data / (1000 * 1000);  // 单位：秒
+                obj->points_time_nsec_ = (timestamp_data % 1000) * 1000; // 单位：纳秒
 
-                for (int i = 0; i < 100; i++)
+                timestamp_data = timestamp_data * 0.001;
+                // std::cout << "points timestamp_data = " << timestamp_data << std::endl;
+
+                for (int i = 0; i < 120; i++)
                 {
-                    int index = (count - 1) * 100 + i;
+                    int index = (count - 1) * 120 + i;
 
-                    int row = recvData->row[i]; // 行 0-149
-                    int col = recvData->col[i]; // 列 0-359
-                    // std::cout << " row = " << row << " col = " << col << std::endl;
+                    int row = recvData->row[i];                             // 行 0-149
+                    int col = recvData->col[i];                             // 列 0-359
                     float point_x = (float)recvData->point_x[i] / 1000 * 2; // x
-                    if (point_x < 0)                                        // 去掉负值
-                    {
-                        double b = 0; // 无穷小
-                        double s = 1 / b;
-                        point_x = s;
-                    }
                     float point_y = (float)recvData->point_y[i] / 1000 * 2; // y
                     float point_z = (float)recvData->point_z[i] / 1000 * 2; // z
-                    // printf("点云的坐标数据 = %f %f %f \n", point_x, point_y, point_z);
                     int intensity = recvData->intensity[i];
-                    // std::cout << "回波强度 intensity = " << intensity << std::endl;
 
                     PointData cloud_temp;
                     cloud_temp.x = point_x;
@@ -113,6 +113,7 @@ namespace wr_scan
                     cloud_temp.intensity = intensity;
                     cloud_temp.ring = col / 4;               // 按照列来区分，列为0-359，等效的线号0-89
                     cloud_temp.time = (float)timestamp_data; // 600个点云为一个时间戳
+                    // std::cout << cloud_temp.time << std::endl;
 
                     if (flag)
                     {
@@ -126,7 +127,9 @@ namespace wr_scan
 
                 if (recvData->lable == 0x02)
                 {
+                    // std::cout << "count = " << count << std::endl;
                     count = 0;
+
                     if (flag)
                     {
                         obj->use_a_or_b_ = true; // use a
@@ -154,7 +157,7 @@ namespace wr_scan
         PointsTask *obj = static_cast<PointsTask *>(arg);
 
         ros::NodeHandle nh;
-        ros::Publisher pcl_pub = nh.advertise<sensor_msgs::PointCloud2>("/ws_points_raw", 1);
+        ros::Publisher pcl_pub = nh.advertise<sensor_msgs::PointCloud2>(obj->scan_topic_str_, 1);
 
         pcl::PointCloud<ETPointXYZIRT>::Ptr cloud(new pcl::PointCloud<ETPointXYZIRT>); // 创建一个点云指针
 
@@ -182,8 +185,7 @@ namespace wr_scan
                     }
                     sensor_msgs::PointCloud2 output;
                     pcl::toROSMsg(*cloud, output); // 转化为ROS数据
-                    output.header.frame_id = "ws_scan";
-                    // output.header.stamp = ros::Time::now();
+                    output.header.frame_id = obj->frame_id_str_;
                     output.header.stamp.sec = obj->points_time_sec_;   // 秒
                     output.header.stamp.nsec = obj->points_time_nsec_; // 纳秒
                     pcl_pub.publish(output);
@@ -203,8 +205,7 @@ namespace wr_scan
                     }
                     sensor_msgs::PointCloud2 output;
                     pcl::toROSMsg(*cloud, output); // 转化为ROS数据
-                    output.header.frame_id = "ws_scan";
-                    // output.header.stamp = ros::Time::now();
+                    output.header.frame_id = obj->frame_id_str_;
                     output.header.stamp.sec = obj->points_time_sec_;   // 秒
                     output.header.stamp.nsec = obj->points_time_nsec_; // 纳秒
                     pcl_pub.publish(output);

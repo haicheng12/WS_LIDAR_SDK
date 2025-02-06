@@ -62,12 +62,12 @@ struct PCLData // UDP接收的PCL数据
 	uint8_t data_type[2];	// 5A A5
 	uint64_t timestamp;		// 时间戳，单位：毫秒
 	uint8_t lable;			// 标签
-	uint16_t row[100];		// 行
-	uint16_t col[100];		// 列
-	uint8_t intensity[100]; // 回波强度
-	int16_t point_x[100];	// 点云x坐标
-	int16_t point_y[100];	// 点云y坐标
-	int16_t point_z[100];	// 点云z坐标
+	uint16_t row[120];		// 行
+	uint16_t col[120];		// 列
+	uint8_t intensity[120]; // 回波强度
+	int16_t point_x[120];	// 点云x坐标
+	int16_t point_y[120];	// 点云y坐标
+	int16_t point_z[120];	// 点云z坐标
 };
 
 struct ImuData // UDP接收的IMU数据

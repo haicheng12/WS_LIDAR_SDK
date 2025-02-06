@@ -26,7 +26,7 @@ namespace wr_scan
 		bool exit();
 
 		bool initUdp(const char *ip_data, int host);
-		void sendDataToServer(int state_num, int id_num, const char *str_data);
+		void sendDataToServer(const char *str_data);
 
 		int getSock();
 		sockaddr_in getServerAddr();

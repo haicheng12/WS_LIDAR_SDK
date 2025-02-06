@@ -62,19 +62,6 @@ namespace wr_scan
         }
         else if (state_num == 2)
         {
-            std::cout << "暂停获取雷达和IMU数据" << std::endl;
-
-            ws_points_state_ = PointsState::STOP;
-
-            point_task_->sendPointsData("stop,points");
-            imu_task_->sendImuData("stop,imu");
-
-            res.sum = state_num;
-
-            return true;
-        }
-        else if (state_num == 3)
-        {
             std::cout << "获取雷达身份码" << std::endl;
 
             ws_model_state_ = ModelState::SN;
@@ -85,7 +72,7 @@ namespace wr_scan
 
             return true;
         }
-        else if (state_num == 4)
+        else if (state_num == 3)
         {
             std::cout << "进入低功耗模式" << std::endl;
 
@@ -97,7 +84,7 @@ namespace wr_scan
 
             return true;
         }
-        else if (state_num == 5)
+        else if (state_num == 4)
         {
             std::cout << "恢复正常工作模式" << std::endl;
 
